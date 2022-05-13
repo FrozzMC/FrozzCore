@@ -1,0 +1,7 @@
+fly:
+  permission: core.fly
+  cool-down: 10
+  aliases:
+    - flight
+  action:
+    - '[fly]'

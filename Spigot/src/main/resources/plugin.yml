@@ -1,0 +1,13 @@
+name: FrozzCore
+version: '${project.version}'
+main: me.thejokerdev.frozzcore.SpigotMain
+api-version: 1.13
+authors: [ TheJokerDev ]
+description: Spigot version of FrozzCore
+softdepend:
+  - PlaceholderAPI
+
+commands:
+  frozzcore:
+    description: Main command of this plugin.
+    aliases: [core, fcore]

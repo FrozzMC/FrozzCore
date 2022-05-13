@@ -1,0 +1,42 @@
+modules:
+  languages: true
+  lobby: true
+
+data:
+  type: sqlite
+  mysql:
+    host: localhost:3306
+    database: frozzcore
+    user: root
+    password: 12345678
+
+scoreboard:
+  update: 10
+  boards:
+    default:
+      title: '%core_lobby_scoreboard.title%'
+      lines:
+        - '%core_lobby_scoreboard.lines%'
+
+settings:
+  prefix: '&b&lFrozzCore &8» '
+  askOnFirstJoin: true
+  debug: false
+  languages:
+    default: en_US
+    downloader:
+      user: 'FrozzMC'
+      repo: 'languages'
+      folders:
+        - 'v1.0'
+
+lobby:
+  spawn: null
+  disablePvP: true
+  disableDamage: true
+  teleportOnVoid: true
+  disableInteract: true
+  disableWeather: true
+  disableDayCycle: true
+  disableHunger: true
+  

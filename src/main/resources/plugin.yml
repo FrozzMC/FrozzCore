@@ -1,6 +1,0 @@
-name: FrozzCore
-version: '${project.version}'
-main: me.thejokerdev.frozzcore.Main
-softdepend: [ PlaceholderAPI ]
-authors: [ TheJokerDev ]
-description: Core for Lobbies in FrozzMC
