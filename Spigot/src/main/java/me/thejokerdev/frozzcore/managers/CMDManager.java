@@ -3,32 +3,35 @@ package me.thejokerdev.frozzcore.managers;
 import me.thejokerdev.frozzcore.SpigotMain;
 import me.thejokerdev.frozzcore.commands.admin.ReloadCMD;
 import me.thejokerdev.frozzcore.commands.admin.SetLobbyCMD;
+import me.thejokerdev.frozzcore.commands.other.FlyCMD;
+import me.thejokerdev.frozzcore.commands.user.LangCMD;
+import me.thejokerdev.frozzcore.commands.user.OpenCMD;
 import me.thejokerdev.frozzcore.enums.SenderType;
 import me.thejokerdev.frozzcore.type.CMD;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
+import me.thejokerdev.frozzcore.type.CustomCMD;
+import org.bukkit.Bukkit;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.util.StringUtil;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Vector;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CMDManager implements CommandExecutor, TabCompleter {
-    private SpigotMain plugin;
+    private final SpigotMain plugin;
     private List<CMD> commands = new ArrayList<>();
+    private final HashMap<String, CustomCMD> customCommands = new HashMap<>();
 
     public CMDManager(SpigotMain plugin) {
         this.plugin = plugin;
 
         plugin.getCommand("frozzcore").setExecutor(this);
         plugin.getCommand("frozzcore").setTabCompleter(this);
-
-        initCMDs();
     }
 
     public void initCMDs(){
@@ -36,6 +39,12 @@ public class CMDManager implements CommandExecutor, TabCompleter {
 
         commands.add(new SetLobbyCMD(plugin));
         commands.add(new ReloadCMD(plugin));
+        commands.add(new LangCMD(plugin));
+        commands.add(new OpenCMD(plugin));
+
+        customCommands.put("fly", new FlyCMD(plugin));
+
+        customCommands.values().forEach(CustomCMD::register);
     }
 
 
@@ -108,5 +117,57 @@ public class CMDManager implements CommandExecutor, TabCompleter {
             }
         }
         return list;
+    }
+
+    public boolean registerCommand(CustomCMD cmd) {
+        if (plugin.getCommand(cmd.getName()) == null) {
+            PluginCommand command = getCommand(cmd.getName(), plugin);
+            if (cmd.getPermission() != null || cmd.getPermission().equals("none")) {
+                command.setPermission(cmd.getPermission());
+            }
+            if (cmd.getPermissionError()!=null) {
+                command.setDescription(cmd.getDescription());
+                command.setAliases(cmd.getAliases());
+            }
+            try {
+                getCommandMap().register(plugin.getDescription().getName(), command);
+            } catch (Exception e) {
+                return false;
+            }
+            plugin.getCommand(cmd.getName()).setExecutor(cmd);
+            if (cmd.isTabComplete()) {
+                plugin.getCommand(cmd.getName()).setTabCompleter(cmd);
+            }
+            plugin.console("{prefix}&fLoaded command: &a"+cmd.getName());
+            return true;
+        }
+        return false;
+    }
+
+    private PluginCommand getCommand(String name, SpigotMain plugin) {
+        PluginCommand command = null;
+        try {
+            Constructor<PluginCommand> c = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
+            c.setAccessible(true);
+            command = c.newInstance(name, plugin);
+        } catch (SecurityException | InvocationTargetException | NoSuchMethodException | InstantiationException |
+                 IllegalAccessException | IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+        return command;
+    }
+
+    private CommandMap getCommandMap() {
+        CommandMap commandMap = null;
+        try {
+            if (Bukkit.getPluginManager() instanceof SimplePluginManager) {
+                Field f = SimplePluginManager.class.getDeclaredField("commandMap");
+                f.setAccessible(true);
+                commandMap = (CommandMap)f.get(Bukkit.getPluginManager());
+            }
+        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return commandMap;
     }
 }

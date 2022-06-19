@@ -18,6 +18,7 @@
 
     <modules>
         <module>Spigot</module>
+        <module>Bungee</module>
     </modules>
 
     <build>

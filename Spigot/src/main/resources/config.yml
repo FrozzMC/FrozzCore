@@ -1,6 +1,15 @@
 modules:
+  scoreboard: true
   languages: true
   lobby: true
+  chat: true
+  tab: true
+  items: true
+  nametags: true
+
+hooks:
+  luckperms: false
+  skinsrestorer: true
 
 data:
   type: sqlite
@@ -19,6 +28,8 @@ scoreboard:
         - '%core_lobby_scoreboard.lines%'
 
 settings:
+  perWorld: true
+  longTags: true
   prefix: '&b&lFrozzCore &8» '
   askOnFirstJoin: true
   debug: false
@@ -28,7 +39,7 @@ settings:
       user: 'FrozzMC'
       repo: 'languages'
       folders:
-        - 'v1.0'
+        - 'v2.0'
 
 lobby:
   spawn: null
@@ -39,4 +50,32 @@ lobby:
   disableWeather: true
   disableDayCycle: true
   disableHunger: true
-  
+  vipMessages: true
+  respawn: true
+
+chat:
+  colors:
+    default: '&7'
+    vip: '&e'
+  format:
+    prefix: '%luckperms_prefix%'
+    name: '%player_name%'
+    suffix: ' &8» '
+    message: '{color}'
+
+vip:
+  messages:
+    rank: '%luckperms_prefix%%player_name% &fha entrado al servidor.'
+    staff: '&c「Staff」%player_name% &fha entrado al servidor.'
+
+tab:
+  header: |-
+    &fsi xd
+  footer: |-
+    &fno xddxdx
+  update: 20
+
+items:
+  onWorldChange: true
+  onJoin: true
+  onRespawn: true

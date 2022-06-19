@@ -1,0 +1,56 @@
+xample:
+  material: paper
+  slot: 3
+  meta:
+    name: '&fExample item'
+    lore:
+      - ''
+      - ' &fExample lore line'
+      - ''
+  actions:
+    leftclick:
+      - '[msg]{prefix}&fYou left clicked this example item!'
+    rightclick:
+      - '[msg]{prefix}&fYou right clicked this example item!'
+    multiclick:
+      - '[sound]BLOCK_NOTE_BLOCK_HARP,3.0,2.0'
+head-example:
+  material: player_head
+  cooldown: 5
+  slot: 5
+  #name-<nick> - Get the skin of a player nickname. (Supports SkinsRestorer for NoPremiums)
+  #base-<nick> - Get the skin of a base64 value.
+  #uuid-<nick> - Get the skin of a player uuid.
+  skull: 'name-%player_name%'
+  meta:
+    name: '&eExample head item'
+    lore:
+      - ''
+      - ' &eExample lore line'
+      - ''
+  actions:
+    leftclick:
+      - '[msg]{prefix}&fYou left clicked this head example!'
+    rightclick:
+      - '[msg]{prefix}&fYou right clicked this head example!'
+    multiclick:
+      - '[sound]BLOCK_NOTE_BLOCK_HARP,3.0,2.0'
+visibility:
+  material: GOLD_NUGGET
+  cooldown: 5
+  update: true
+  slot: 7
+  meta:
+    name: '&7Visibility: %core_visibility%'
+    lore: |-
+      &7
+      &7Click to change the visibility
+      &7of players.
+      &7
+      &7Actual: %core_visibility%
+      &7
+  actions:
+    multiclick:
+      - '[action]visibility'
+      - '[msg]&fNow, your visibility is for: %core_visibility%'
+      - '[sound]BLOCK_NOTE_BLOCK_HARP,3.0,1.0'

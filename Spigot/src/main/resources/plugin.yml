@@ -6,6 +6,8 @@ authors: [ TheJokerDev ]
 description: Spigot version of FrozzCore
 softdepend:
   - PlaceholderAPI
+  - SkinsRestorer
+  - LuckPerms
 
 commands:
   frozzcore:

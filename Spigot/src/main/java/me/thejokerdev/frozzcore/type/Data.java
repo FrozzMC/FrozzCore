@@ -2,11 +2,13 @@ package me.thejokerdev.frozzcore.type;
 
 import me.thejokerdev.frozzcore.SpigotMain;
 import me.thejokerdev.frozzcore.enums.DataType;
+import me.thejokerdev.frozzcore.enums.VisibilityType;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Locale;
 
 public abstract class Data {
 
@@ -42,6 +44,10 @@ public abstract class Data {
                 } else {
                     var2.setLang(plugin.getClassManager().getLangManager().getDefault());
                 }
+                if (var4.getString("visibility") != null) {
+                    var5 = var4.getString("visibility");
+                    var2.setVisibilityType(VisibilityType.valueOf(var5.toUpperCase()));
+                }
                 if (var4.getBoolean("firstJoin")) {
                     var2.setFirstJoin(false);
                 }
@@ -67,14 +73,13 @@ public abstract class Data {
         PreparedStatement var3 = null;
 
         try {
-            var3 = var1.prepareStatement(String.format("UPDATE %s SET username=?, uuid=?, lang=?, firstJoin=?, hype=? WHERE uuid=? OR (uuid IS NULL AND username=?)", this.TABLE_DATA));
-            var3.setString(1, var2.getName());
-            var3.setString(2, var2.getUniqueID().toString());
-            var3.setString(3, var2.getLang() == null ? plugin.getClassManager().getLangManager().getDefault() : var2.getLang());
-            var3.setBoolean(4, var2.isFirstJoin());
-            var3.setInt(5, var2.getHype());
-            var3.setString(6, var2.getUniqueID().toString());
-            var3.setString(7, var2.getName());
+            var3 = var1.prepareStatement(String.format("UPDATE %s SET lang=?, firstJoin=?, hype=?, visibility=? WHERE uuid=? OR (uuid IS NULL AND username=?)", this.TABLE_DATA));
+            var3.setString(1, var2.getLang() == null ? plugin.getClassManager().getLangManager().getDefault() : var2.getLang());
+            var3.setBoolean(2, var2.isFirstJoin());
+            var3.setInt(3, var2.getHype());
+            var3.setString(4, var2.getVisibilityType().name().toLowerCase());
+            var3.setString(5, var2.getUniqueID().toString());
+            var3.setString(6, var2.getName());
             var3.executeUpdate();
         } catch (SQLException var8) {
             var8.printStackTrace();

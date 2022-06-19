@@ -12,7 +12,7 @@ import java.util.LinkedList;
 
 public class BoardAPI {
 
-    public static void scoredSidebar(Player var0, String var1, LinkedHashMap<String, Integer> var2) {
+    public void scoredSidebar(Player var0, String var1, LinkedHashMap<String, Integer> var2) {
         if (var1 == null) {
             var1 = "Unamed board";
         }
@@ -93,7 +93,7 @@ public class BoardAPI {
         });
     }
 
-    public static LinkedHashMap<String, Integer> getLinkedHashMap(LinkedList<String> list){
+    public LinkedHashMap<String, Integer> getLinkedHashMap(LinkedList<String> list){
         int slot = list.size();
         LinkedHashMap<String, Integer> hashMap = new LinkedHashMap<>();
         for(Iterator<String> var4 = list.iterator(); var4.hasNext(); --slot) {
@@ -103,7 +103,7 @@ public class BoardAPI {
         return hashMap;
     }
 
-    private static String fixDuplicates(LinkedHashMap<String, Integer> var0, String var1) {
+    private String fixDuplicates(LinkedHashMap<String, Integer> var0, String var1) {
         while(var0.containsKey(var1)) {
             var1 = var1 + "§r";
         }

@@ -82,12 +82,13 @@ public class SQLite extends Data {
 
         try {
             var1 = con.createStatement();
-            var1.executeUpdate(String.format("CREATE TABLE IF NOT EXISTS '%s' ('id' INTEGER PRIMARY KEY, 'uuid' TEXT(40), 'username' TEXT(32), 'lang' TEXT, 'firstJoin' BOOLEAN DEFAULT TRUE, 'hype' INT(12) DEFAULT '0'); CREATE INDEX IF NOT EXISTS fudata_username_idx ON %s(username); CREATE INDEX IF NOT EXISTS fudata_uuid ON %s(uuid);", this.TABLE_DATA, this.TABLE_DATA, this.TABLE_DATA));
+            var1.executeUpdate(String.format("CREATE TABLE IF NOT EXISTS '%s' ('id' INTEGER PRIMARY KEY, 'uuid' TEXT(40), 'username' TEXT(32), 'lang' TEXT, 'firstJoin' BOOLEAN DEFAULT TRUE, 'hype' INT(12) DEFAULT '0', 'visibility' TEXT); CREATE INDEX IF NOT EXISTS fudata_username_idx ON %s(username); CREATE INDEX IF NOT EXISTS fudata_uuid ON %s(uuid);", this.TABLE_DATA, this.TABLE_DATA, this.TABLE_DATA));
             this.addColumn(this.TABLE_DATA, "uuid", "VARCHAR(255) NOT NULL UNIQUE");
             this.addColumn(this.TABLE_DATA, "username", "VARCHAR(255) DEFAULT NULL");
             this.addColumn(this.TABLE_DATA, "lang", "TEXT");
             this.addColumn(this.TABLE_DATA, "firstJoin", "BOOLEAN DEFAULT TRUE");
             this.addColumn(this.TABLE_DATA, "hype", "INT(12) DEFAULT 0");
+            this.addColumn(this.TABLE_DATA, "visibility", "TEXT");
             var1.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();

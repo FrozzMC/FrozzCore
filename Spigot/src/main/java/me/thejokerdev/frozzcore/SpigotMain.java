@@ -1,11 +1,16 @@
 package me.thejokerdev.frozzcore;
 
+import com.cryptomorin.xseries.XMaterial;
 import lombok.Getter;
 import lombok.Setter;
+import me.thejokerdev.frozzcore.api.hooks.LP;
 import me.thejokerdev.frozzcore.api.hooks.PAPI;
+import me.thejokerdev.frozzcore.api.hooks.SR;
 import me.thejokerdev.frozzcore.api.utils.LocationUtil;
 import me.thejokerdev.frozzcore.api.utils.Utils;
 import me.thejokerdev.frozzcore.managers.ClassManager;
+import me.thejokerdev.frozzcore.type.FUser;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -15,7 +20,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class SpigotMain extends JavaPlugin {
     private static SpigotMain plugin;
     private ClassManager classManager;
+
+    private LP lp = null;
+    private SR sr = null;
     private Location spawn = null;
+
+    private boolean loaded = false;
 
     @Override
     public void onEnable() {
@@ -24,6 +34,7 @@ public final class SpigotMain extends JavaPlugin {
 
         classManager = new ClassManager(this);
         classManager.init();
+        classManager.getCmdManager().initCMDs();
 
         if (!checkDependencies()){
             getServer().getPluginManager().disablePlugin(this);
@@ -33,6 +44,9 @@ public final class SpigotMain extends JavaPlugin {
             spawn = LocationUtil.getLocation(getConfig().getString("lobby.spawn"));
         }
 
+        plugin.getClassManager().getUtils().startTab(false);
+        Bukkit.getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+        loaded = true;
     }
 
     public boolean checkDependencies(){
@@ -46,7 +60,25 @@ public final class SpigotMain extends JavaPlugin {
             console("&fPlaceholderAPI hooked!");
         }
 
+        if (pm.isPluginEnabled("LuckPerms")){
+            console("&aLuckPerms found!");
+            lp = new LP(this);
+        }
+
+        if (pm.isPluginEnabled("SkinsRestorer")){
+            console("&aSkinsRestorer found!");
+            sr = new SR(this);
+        }
+
         return true;
+    }
+
+    public boolean haveLP(){
+        return lp != null && getConfig().getBoolean("hooks.luckperms");
+    }
+
+    public boolean haveSR(){
+        return sr != null && getConfig().getBoolean("hooks.skinsrestorer");
     }
 
     public static SpigotMain getPlugin() {
@@ -65,7 +97,26 @@ public final class SpigotMain extends JavaPlugin {
         if (!getConfig().getBoolean("settings.debug")){
             return;
         }
+        if (classManager == null || classManager.getUtils() == null){
+            Bukkit.getConsoleSender().sendMessage(Utils.ct(getPrefix() + "&e&lDEBUG: &7" + in));
+            return;
+        }
         getClassManager().getUtils().sendMessage("{prefix}&e&lDEBUG: &7"+in);
+    }
+
+    @Override
+    public void reloadConfig() {
+        super.reloadConfig();
+        if (loaded) {
+            plugin.getClassManager().getUtils().startTab(true);
+            if (plugin.getConfig().getBoolean("modules.nametags")){
+                plugin.getClassManager().getNametagManager().init();
+            }
+            for (FUser user : plugin.getClassManager().getPlayerManager().getUsers().values()){
+                user.getItemsManager().reloadItems();
+                plugin.getClassManager().getMenusManager().loadMenus(user.getPlayer());
+            }
+        }
     }
 
     @Override

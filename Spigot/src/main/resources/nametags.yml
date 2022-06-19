@@ -1,0 +1,4 @@
+default:
+  prefix: '&7'
+  suffix: '&b「2.0」'
+  priority: 0

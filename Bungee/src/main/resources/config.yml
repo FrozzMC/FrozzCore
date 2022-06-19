@@ -1,0 +1,13 @@
+settings:
+  prefix: '&b&lFrozzMC &8&l» &7'
+
+modules:
+  discord: true
+
+discord:
+  token: 'PASTE YOUR TOKEN HERE'
+  guild: ''
+  settings:
+    player-info:
+      channel: 'INSERT ID'
+      msg: '👥 | Jugando: {online}/{max}'

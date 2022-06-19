@@ -1,20 +1,33 @@
 package me.thejokerdev.frozzcore.type;
 
 import lombok.Getter;
+import lombok.Setter;
 import me.thejokerdev.frozzcore.SpigotMain;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Getter
-public class CustomCMD {
+@Setter
+public class CustomCMD implements CommandExecutor, TabCompleter {
     private SpigotMain plugin;
     private String name;
     private List<String> aliases = new ArrayList<>();
     private List<String> actions = new ArrayList<>();
     private int cooldown = 0;
     private String permission = "none";
+
+    private String permissionError;
+
+    private String description;
+
+    private boolean tabComplete;
 
     public CustomCMD(SpigotMain plugin, ConfigurationSection section){
         this.plugin = plugin;
@@ -32,5 +45,30 @@ public class CustomCMD {
         if (section.get("permission")!=null){
             permission = section.getString("permission");
         }
+    }
+
+    public void addAliases(String... alias){
+        aliases.addAll(Arrays.asList(alias));
+    }
+
+    public CustomCMD(SpigotMain plugin){
+        this.plugin = plugin;
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        return false;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        return null;
+    }
+
+    public void register(){
+        System.out.println("Is plugin null? "+(plugin==null));
+        System.out.println("Is ClassManager null? "+(plugin.getClassManager()==null));
+        System.out.println("Is CMDManager null? "+(plugin.getClassManager().getCmdManager()==null));
+        plugin.getClassManager().getCmdManager().registerCommand(this);
     }
 }

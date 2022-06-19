@@ -2,8 +2,11 @@ package me.thejokerdev.frozzcore.type;
 
 import lombok.Getter;
 import lombok.Setter;
+import me.clip.placeholderapi.PlaceholderAPI;
 import me.thejokerdev.frozzcore.SpigotMain;
 import me.thejokerdev.frozzcore.api.events.PlayerChangeLangEvent;
+import me.thejokerdev.frozzcore.enums.VisibilityType;
+import me.thejokerdev.frozzcore.managers.ItemsManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -19,6 +22,9 @@ public class FUser {
     private String lang;
     private boolean firstJoin;
     private int hype;
+    private ItemsManager itemsManager;
+
+    private VisibilityType visibilityType = VisibilityType.ALL;
 
     public FUser(Player p){
         this(p.getName(), p.getUniqueId());
@@ -28,6 +34,11 @@ public class FUser {
         this.name = var1;
         this.uniqueID = var2;
         SpigotMain.getPlugin().getClassManager().getDataManager().getData().getData(this);
+    }
+
+    public void initItems(){
+        itemsManager = new ItemsManager(this);
+        itemsManager.check();
     }
 
     public String getLang() {
@@ -78,5 +89,15 @@ public class FUser {
 
     public void saveForceData(){
         saveData(false);
+    }
+
+    public String getMSG(String configKey){
+        configKey = configKey.replace("key:", "");
+        String str = SpigotMain.getPlugin().getClassManager().getLangManager().getLanguageOfSection("general", lang).getFile().getString(configKey);
+        if (str ==null){
+            return configKey;
+        }
+        str = PlaceholderAPI.setPlaceholders(getPlayer(), str);
+        return SpigotMain.getPlugin().getClassManager().getUtils().getMessage(str);
     }
 }

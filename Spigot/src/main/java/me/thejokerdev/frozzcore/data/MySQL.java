@@ -183,12 +183,13 @@ public class MySQL extends Data {
 
         try {
             Statement var3 = var1.createStatement();
+            var3.executeUpdate(String.format("CREATE TABLE IF NOT EXISTS `%s` (`id` INT NOT NULL AUTO_INCREMENT, `username` VARCHAR(32) NOT NULL UNIQUE, `uuid` varchar(40) UNIQUE, `lang` TEXT, `firstJoin` BOOLEAN, `hype` INT(12) DEFAULT '0', `visibility` TEXT, PRIMARY KEY (id), KEY `fudata_username_idx` (`username`(32))) ENGINE=InnoDB;", this.TABLE_DATA));
             this.addColumn(this.TABLE_DATA, "uuid", "VARCHAR(255) NOT NULL UNIQUE", "id");
-            var3.executeUpdate(String.format("CREATE TABLE IF NOT EXISTS `%s` (`id` INT NOT NULL AUTO_INCREMENT, `username` VARCHAR(32) NOT NULL UNIQUE, `uuid` varchar(40) UNIQUE, `lang` TEXT, `firstJoin` BOOLEAN DEFAULT 'TRUE', `hype` INT(12) DEFAULT '0', PRIMARY KEY (id), KEY `fudata_username_idx` (`username`(32))) ENGINE=InnoDB;", this.TABLE_DATA));
             this.addColumn(this.TABLE_DATA, "username", "VARCHAR(255) NOT NULL UNIQUE", "uuid");
             this.addColumn(this.TABLE_DATA, "lang", "TEXT", "username");
-            this.addColumn(this.TABLE_DATA, "firstJoin", "BOOLEAN DEFAULT TRUE", "lang");
+            this.addColumn(this.TABLE_DATA, "firstJoin", "BOOLEAN", "lang");
             this.addColumn(this.TABLE_DATA, "hype", "INT(12) DEFAULT 0", "firstJoin");
+            this.addColumn(this.TABLE_DATA, "visibility", "TEXT", "hype");
             var3.close();
             DatabaseMetaData var5 = var1.getMetaData();
             ResultSet var4 = var5.getIndexInfo(null, null, this.TABLE_DATA, true, false);

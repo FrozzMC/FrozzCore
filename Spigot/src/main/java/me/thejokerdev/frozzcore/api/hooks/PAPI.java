@@ -3,6 +3,8 @@ package me.thejokerdev.frozzcore.api.hooks;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.thejokerdev.frozzcore.SpigotMain;
+import me.thejokerdev.frozzcore.api.visual.Animation;
+import me.thejokerdev.frozzcore.api.visual.Color;
 import me.thejokerdev.frozzcore.type.FUser;
 import me.thejokerdev.frozzcore.type.Lang;
 import org.bukkit.entity.Player;
@@ -45,10 +47,47 @@ public class PAPI extends PlaceholderExpansion {
                 }
             }
         }
+        if (params.equals("visibility")){
+            if (player != null){
+                FUser user = plugin.getClassManager().getPlayerManager().getUser(player);
+                if (user != null){
+                    return plugin.getClassManager().getUtils().getLangMSG(player, "visibility."+user.getVisibilityType().name());
+                }
+            }
+        }
+        String[] split = params.split("_");
+        if (split.length == 1 || split.length >= 4) {
+            String arg1 = split[0];
+            if (arg1.equalsIgnoreCase("wave")) {
+                if (split.length > 3){
+                    String arg2 = split[1];
+                    String arg3 = split[2];
+                    String arg4 = split[3];
+                    if (split.length == 5){
+                        String arg5 = split[4].toUpperCase();
+                        return Animation.wave(arg2, Boolean.parseBoolean(arg5), 5, 10, Color.from(arg3), Color.from(arg4));
+                    }
+                    return Animation.wave(arg2, Color.from(arg3), Color.from(arg4));
+                }
+                return Animation.wave("Test", Color.from("986532"), Color.from("722626"));
+            }
+            if (arg1.equalsIgnoreCase("fading")) {
+                if (split.length >= 4) {
+                    String arg2 = split[1];
+                    String arg3 = split[2];
+                    String arg4 = split[3];
+                    if (split.length == 5){
+                        String arg5 = split[4].toUpperCase();
+                        return Animation.fading(arg2, Boolean.parseBoolean(arg5), 5, 10, Color.from(arg3), Color.from(arg4));
+                    }
+                    return Animation.fading(arg2, Color.from(arg3), Color.from(arg4));
+                }
+                return Animation.fading("Test", Color.from("986532"), Color.from("722626t"));
+            }
+        }
         if (!params.contains("_")){
             return PlaceholderAPI.setPlaceholders(player, plugin.getClassManager().getUtils().getMSG("error"));
         }
-        String[] split = params.split("_");
         if (split.length != 2){
             return PlaceholderAPI.setPlaceholders(player, plugin.getClassManager().getUtils().getMSG("error"));
         }
@@ -62,7 +101,7 @@ public class PAPI extends PlaceholderExpansion {
         String section = split[0];
 
         if (!plugin.getClassManager().getLangManager().getLanguages().containsKey(section)){
-            return PlaceholderAPI.setPlaceholders(player, plugin.getClassManager().getUtils().getMSG("sectionNotFound"));
+            return PlaceholderAPI.setPlaceholders(player, plugin.getClassManager().getUtils().getMSG("sectionNotFound").replace("{section}", section));
         }
 
         if (plugin.getClassManager().getLangManager().getLanguageOfSection(section, lang) == null){
@@ -77,7 +116,7 @@ public class PAPI extends PlaceholderExpansion {
         }
 
         if (language.getFile().get(key)==null) {
-            return PlaceholderAPI.setPlaceholders(player, plugin.getClassManager().getUtils().getMSG("keyNotFound"));
+            return PlaceholderAPI.setPlaceholders(player, plugin.getClassManager().getUtils().getMSG("keyNotFound").replace("{key}", key));
         }
 
         return PlaceholderAPI.setPlaceholders(player, language.getFile().getString(key));

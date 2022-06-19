@@ -31,7 +31,9 @@ public class PlayerManager implements Listener {
 
     public void registerUser(Player p){
         if (!users.containsKey(p.getUniqueId())){
-            users.put(p.getUniqueId(), new FUser(p));
+            FUser user = new FUser(p);
+            users.put(p.getUniqueId(), user);
+            user.initItems();
         }
     }
 

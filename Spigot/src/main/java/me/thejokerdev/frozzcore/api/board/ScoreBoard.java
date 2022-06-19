@@ -20,13 +20,22 @@ import java.util.LinkedList;
 public class ScoreBoard implements Listener {
     private SpigotMain plugin;
     private BukkitTask task;
+    BoardAPI boardAPI;
 
     public ScoreBoard(SpigotMain plugin) {
+        if (!plugin.getConfig().getBoolean("modules.scoreboard")){
+            return;
+        }
         this.plugin = plugin;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        boardAPI = new BoardAPI();
         loadTask();
     }
 
     public void loadTask(){
+        if (!plugin.getConfig().getBoolean("modules.scoreboard")){
+            return;
+        }
         if (task!=null){
             task.cancel();
         }
@@ -46,25 +55,40 @@ public class ScoreBoard implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     private void onPlayerJoin(PlayerJoinEvent event) {
+        if (!plugin.getConfig().getBoolean("modules.scoreboard")){
+            return;
+        }
         create(event.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     private void onPlayerQuit(PlayerQuitEvent event) {
+        if (!plugin.getConfig().getBoolean("modules.scoreboard")){
+            return;
+        }
         ScoreBoardBuilder.remove(event.getPlayer());
     }
 
     private void create(Player player) {
+        if (!plugin.getConfig().getBoolean("modules.scoreboard")){
+            return;
+        }
         ScoreBoardBuilder.create(player);
     }
 
     public void createAll() {
+        if (!plugin.getConfig().getBoolean("modules.scoreboard")){
+            return;
+        }
         for (Player player : Bukkit.getOnlinePlayers()) {
             create(player);
         }
     }
 
     public void contentBoard(FUser var0) {
+        if (!plugin.getConfig().getBoolean("modules.scoreboard")){
+            return;
+        }
         if (var0!=null) {
             Player var1 = var0.getPlayer();
             if (ScoreBoardBuilder.get(var1) == null) {
@@ -90,9 +114,7 @@ public class ScoreBoard implements Listener {
                 }
                 finalList.add(value);
             }
-            /*ScoreBoardBuilder.get(var1).setTitle(title);
-            ScoreBoardBuilder.get(var1).setSlotsFromList(finalList);*/
-            BoardAPI.scoredSidebar(var0.getPlayer(), title, BoardAPI.getLinkedHashMap(finalList));
+            boardAPI.scoredSidebar(var0.getPlayer(), title, boardAPI.getLinkedHashMap(finalList));
         }
     }
 }
