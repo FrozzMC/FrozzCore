@@ -2,7 +2,10 @@ package me.thejokerdev.frozzcore.commands.other;
 
 import lombok.Getter;
 import me.thejokerdev.frozzcore.SpigotMain;
+import me.thejokerdev.frozzcore.enums.ModifierStatus;
+import me.thejokerdev.frozzcore.enums.Modules;
 import me.thejokerdev.frozzcore.type.CustomCMD;
+import me.thejokerdev.frozzcore.type.FUser;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -33,19 +36,27 @@ public class FlyCMD extends CustomCMD {
             return true;
         }
         Player p = (Player) sender;
+        FUser user = plugin.getClassManager().getPlayerManager().getUser(p);
         if (!p.hasPermission(getPermission())){
             getPlugin().getClassManager().getUtils().sendMessage(sender, "noPermission");
             return true;
         }
         if (args.length == 0){
-            if (p.getAllowFlight()){
+            if (!plugin.getUtils().isWorldProtected(p.getWorld(), Modules.FLY)){
+                plugin.getUtils().sendMessage(sender, "{prefix}&cNo puedes usar ese comando en el mundo.");
+                return true;
+            }
+            if (user.getAllowFlight() == ModifierStatus.ON){
                 getPlugin().getClassManager().getUtils().sendMessage(sender, "commands.fly.deactivated");
-                p.setAllowFlight(false);
+                user.setAllowFlight(ModifierStatus.OFF);
             } else {
                 getPlugin().getClassManager().getUtils().sendMessage(sender, "commands.fly.activated");
-                p.setAllowFlight(true);
-                p.setFlying(true);
+                user.setAllowFlight(ModifierStatus.ON);
+                if (p.getAllowFlight()){
+                    p.setFlying(true);
+                }
             }
+            user.saveData(false);
             return true;
         }
         return true;

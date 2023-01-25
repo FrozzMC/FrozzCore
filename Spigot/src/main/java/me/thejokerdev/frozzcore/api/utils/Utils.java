@@ -3,16 +3,20 @@ package me.thejokerdev.frozzcore.api.utils;
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XSound;
 import com.cryptomorin.xseries.messages.Titles;
-import javafx.scene.control.Tab;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.thejokerdev.frozzcore.SpigotMain;
 import me.thejokerdev.frozzcore.api.misc.DefaultFontInfo;
+import me.thejokerdev.frozzcore.enums.ModifierStatus;
+import me.thejokerdev.frozzcore.enums.Modules;
 import me.thejokerdev.frozzcore.enums.VisibilityType;
 import me.thejokerdev.frozzcore.type.FUser;
 import me.thejokerdev.frozzcore.type.Menu;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
+import org.bukkit.Effect;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -36,6 +40,9 @@ public class Utils {
 
     /* String utils*/
     public static String ct(String msg){
+        if (MinecraftVersion.getServersVersion().isAboveOrEqual(MinecraftVersion.V1_16_R1)){
+            return ChatColor.translateAlternateColorCodes('&',msg);
+        }
         return ChatColor.translateAlternateColorCodes('&', msg);
     }
     public static List<String> ct(List<String> msg){
@@ -90,7 +97,7 @@ public class Utils {
         }
 
         if (hasPrefix){
-            msg = msg.replace("{prefix}", plugin.getPrefix());
+            msg = msg.replace("{prefix}", PlaceholderAPI.setPlaceholders(null, plugin.getPrefix()));
         }
         if (hasCenter){
             msg = getCenteredMSG(msg.replace("{center}", ""));
@@ -209,6 +216,13 @@ public class Utils {
                     String footer = plugin.getConfig().getString("tab.footer");
 
                     for (Player p : Bukkit.getOnlinePlayers()){
+                        World w = plugin.getSpawn().getWorld();
+                        if (w == null){
+                            w = p.getWorld();
+                        }
+                        if (!isWorldProtected(w, Modules.TAB)){
+                            continue;
+                        }
                         header = getMessage(header);
                         header = PlaceholderAPI.setPlaceholders(p, header);
                         footer = getMessage(footer);
@@ -247,7 +261,7 @@ public class Utils {
         sound.play(p, volume, pitch);
     }
 
-    public void actions(Player p, List<String> list){
+    public boolean actions(Player p, List<String> list){
         for (String s : list){
             s = PlaceholderAPI.setPlaceholders(p, s);
             if (s.startsWith("[close]")){
@@ -281,10 +295,14 @@ public class Utils {
             }
             if (s.startsWith("[open]")){
                 s = s.replace("[open]", "");
+                for (Menu menu : plugin.getClassManager().getMenusManager().getPlayerMenus(p).values()){
+                    plugin.debug(menu.getMenuId()+" is loaded for "+p.getName());
+                }
                 Menu menu = plugin.getClassManager().getMenusManager().getPlayerMenu(p, s);
                 if (menu == null){
+                    plugin.getClassManager().getMenusManager().loadMenus(p);
                     sendMessage(p, "menus.not-exist");
-                    return;
+                    return true;
                 }
                 p.openInventory(menu.getInventory());
             }
@@ -298,13 +316,110 @@ public class Utils {
                     Titles.sendTitle(p, Integer.parseInt(split[2]), Integer.parseInt(split[3]), Integer.parseInt(split[4]), formatMSG(p, split[0]), formatMSG(p, split[1]));
                 }
             }
+            FUser user = plugin.getClassManager().getPlayerManager().getUser(p);
             if (s.startsWith("[action]")){
                 s = s.replace("[action]", "");
                 if (s.equalsIgnoreCase("visibility")){
                     changeVisibility(p);
+                    user.saveData(false);
+                }
+                if (s.equalsIgnoreCase("return")){
+                    return false;
+                }
+                if (s.equalsIgnoreCase("jump")){
+                    user.setJump(user.getJump() == ModifierStatus.OFF ? ModifierStatus.ON : ModifierStatus.OFF);
+                    user.saveData(false);
+                }
+                if (s.equalsIgnoreCase("disableJump")){
+                    user.setJump(ModifierStatus.DEACTIVATED);
+                    user.saveData(false);
+                }
+                if (s.equalsIgnoreCase("doublejump")){
+                    user.setDoubleJump(user.getDoubleJump() == ModifierStatus.OFF ? ModifierStatus.ON : ModifierStatus.OFF);
+                    user.saveData(false);
+                }
+                if (s.equalsIgnoreCase("disableDoubleJump")){
+                    user.setDoubleJump(ModifierStatus.DEACTIVATED);
+                    user.saveData(false);
+                }
+                if (s.equalsIgnoreCase("fly")){
+                    user.setAllowFlight(user.getAllowFlight() == ModifierStatus.OFF ? ModifierStatus.ON : ModifierStatus.OFF);
+                    user.saveData(false);
+                }
+                if (s.equalsIgnoreCase("disableFly")){
+                    user.setAllowFlight(ModifierStatus.DEACTIVATED);
+                    user.saveData(false);
+                }
+                if (s.equalsIgnoreCase("disableSpeed")){
+                    user.setSpeed(ModifierStatus.DEACTIVATED);
+                    user.saveData(false);
+                }
+                if (s.equalsIgnoreCase("enderbutt")){
+                    if (p.getVehicle() != null && p.getVehicle() instanceof EnderPearl){
+                        EnderPearl pearl = (EnderPearl) p.getVehicle();
+                        pearl.remove();
+                    }
+                    EnderPearl pearl = p.launchProjectile(EnderPearl.class);
+                    pearl.setPassenger(p);
+                    actions(p, Arrays.asList("[sound]ENTITY_ENDERMAN_TELEPORT,1.0,1.0"));
+                    setupEnderpearlRunnable(pearl);
                 }
             }
+            if (s.startsWith("[speed]")){
+                s = s.replace("[speed]",  "");
+                user.setSpeed(user.getSpeed() == ModifierStatus.OFF ? ModifierStatus.ON : ModifierStatus.OFF);
+                user.saveData(false);
+            }
         }
+        return true;
+    }
+
+    public void setupEnderpearlRunnable(final EnderPearl item) {
+        (new BukkitRunnable() {
+            public void run() {
+                if (item.isDead()){
+                    cancel();
+                } else {
+                    item.getLocation().getWorld().playEffect(item.getLocation(), Effect.HAPPY_VILLAGER, 0);
+                }
+                if (item.getVelocity().getX() == 0.0D || item.getVelocity().getY() == 0.0D || item.getVelocity().getZ() == 0.0D) {
+                    Player player = (Player)item.getPassenger();
+                    item.remove();
+                    if (player != null)
+                        player.teleport(player.getLocation().add(0.0D, 0.5D, 0.0D));
+                    cancel();
+                }
+            }
+        }).runTaskTimer(plugin, 2L, 1L);
+    }
+
+    public FileUtils getWorlds(){
+        File file = new File(plugin.getDataFolder(), "worlds.yml");
+        if (!file.exists()){
+            plugin.saveResource("worlds.yml", false);
+        }
+        return new FileUtils(file);
+    }
+
+    public boolean isWorldProtected(World w, Modules module){
+        if (getWorlds().getString("settings.global").contains(module.name().toLowerCase())){
+            return true;
+        }
+        boolean mode = getWorlds().getString("settings.mode").equalsIgnoreCase("whitelist") || getWorlds().getString("settings.mode").equalsIgnoreCase("wl");
+        if (w == null){
+            return false;
+        }
+        String str = "worlds."+w.getName().toLowerCase();
+        if (getWorlds().get(str)==null && mode){
+            return false;
+        } else if (!mode && getWorlds().get(str)!=null){
+            return false;
+        }
+
+        if (getWorlds().get(str+"."+module.name().toLowerCase()) == null){
+            return false;
+        }
+        return getWorlds().getBoolean(str+"."+module.name().toLowerCase());
     }
 
     public void changeVisibility(Player p) {
@@ -320,18 +435,7 @@ public class Utils {
         }
         user.setVisibilityType(type);
 
-        for (Player t : p.getWorld().getPlayers()) {
-            if (user.getVisibilityType() == VisibilityType.ALL){
-                p.showPlayer(t);
-                continue;
-            }
-            if (user.getVisibilityType() == VisibilityType.RANKS) {
-                if (t.hasPermission("core.rank")) {
-                    continue;
-                }
-            }
-            p.hidePlayer(t);
-        }
+        plugin.getClassManager().getLoginListener().checkVisibility(p);
     }
 
     public FileUtils getFile(String file){

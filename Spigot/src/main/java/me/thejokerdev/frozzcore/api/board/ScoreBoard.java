@@ -3,8 +3,10 @@ package me.thejokerdev.frozzcore.api.board;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.thejokerdev.frozzcore.SpigotMain;
 import me.thejokerdev.frozzcore.api.utils.Utils;
+import me.thejokerdev.frozzcore.enums.Modules;
 import me.thejokerdev.frozzcore.type.FUser;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -89,32 +91,40 @@ public class ScoreBoard implements Listener {
         if (!plugin.getConfig().getBoolean("modules.scoreboard")){
             return;
         }
-        if (var0!=null) {
-            Player var1 = var0.getPlayer();
-            if (ScoreBoardBuilder.get(var1) == null) {
-                return;
-            }
-            String title;
-            LinkedList<String> list;
-            title = plugin.getConfig().getString("scoreboard.boards.default.title");
-            list = new LinkedList<>(plugin.getConfig().getStringList("scoreboard.boards.default.lines"));
-            title = Utils.ct(title);
-            title = PlaceholderAPI.setPlaceholders(var0.getPlayer(), title);
-            LinkedList<String> finalList = new LinkedList<>();
-            for (String value : list) {
-                value = Utils.ct(value);
-                value = PlaceholderAPI.setPlaceholders(var0.getPlayer(), value);
-                if (value.contains("\\n")) {
-                    Collections.addAll(finalList, value.split("\\n"));
-                    continue;
-                }
-                if (value.contains("\n")) {
-                    Collections.addAll(finalList, value.split("\n"));
-                    continue;
-                }
-                finalList.add(value);
-            }
-            boardAPI.scoredSidebar(var0.getPlayer(), title, boardAPI.getLinkedHashMap(finalList));
+        if (var0.getPlayer() == null){
+            return;
         }
+        if (!plugin.getUtils().isWorldProtected(var0.getPlayer().getWorld(), Modules.SCOREBOARD)){
+            return;
+        }
+        Player var1 = var0.getPlayer();
+        World w = plugin.getSpawn().getWorld();
+        if (w == null){
+            w = var1.getWorld();
+        }
+        if (ScoreBoardBuilder.get(var1) == null) {
+            return;
+        }
+        String title;
+        LinkedList<String> list;
+        title = plugin.getConfig().getString("scoreboard.boards.default.title");
+        list = new LinkedList<>(plugin.getConfig().getStringList("scoreboard.boards.default.lines"));
+        title = Utils.ct(title);
+        title = PlaceholderAPI.setPlaceholders(var0.getPlayer(), title);
+        LinkedList<String> finalList = new LinkedList<>();
+        for (String value : list) {
+            value = Utils.ct(value);
+            value = PlaceholderAPI.setPlaceholders(var0.getPlayer(), value);
+            if (value.contains("\\n")) {
+                Collections.addAll(finalList, value.split("\\n"));
+                continue;
+            }
+            if (value.contains("\n")) {
+                Collections.addAll(finalList, value.split("\n"));
+                continue;
+            }
+            finalList.add(value);
+        }
+        boardAPI.scoredSidebar(var0.getPlayer(), title, boardAPI.getLinkedHashMap(finalList));
     }
 }

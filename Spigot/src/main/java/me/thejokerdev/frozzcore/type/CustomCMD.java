@@ -23,7 +23,7 @@ public class CustomCMD implements CommandExecutor, TabCompleter {
     private int cooldown = 0;
     private String permission = "none";
 
-    private String permissionError;
+    private String permissionError = "";
 
     private String description;
 
@@ -66,9 +66,6 @@ public class CustomCMD implements CommandExecutor, TabCompleter {
     }
 
     public void register(){
-        System.out.println("Is plugin null? "+(plugin==null));
-        System.out.println("Is ClassManager null? "+(plugin.getClassManager()==null));
-        System.out.println("Is CMDManager null? "+(plugin.getClassManager().getCmdManager()==null));
         plugin.getClassManager().getCmdManager().registerCommand(this);
     }
 }

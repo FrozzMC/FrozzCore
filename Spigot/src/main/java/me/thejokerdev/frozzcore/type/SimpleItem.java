@@ -2,6 +2,8 @@ package me.thejokerdev.frozzcore.type;
 
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
+import lombok.Getter;
+import lombok.Setter;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.thejokerdev.frozzcore.SpigotMain;
 import me.thejokerdev.frozzcore.api.utils.SkullUtils;
@@ -17,10 +19,13 @@ import org.bukkit.inventory.meta.FireworkEffectMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.material.MaterialData;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+@Getter
+@Setter
 public class SimpleItem {
     private XMaterial material;
     private ItemMeta meta;
@@ -28,13 +33,16 @@ public class SimpleItem {
     private List<String> lore;
     private String displayName;
     private String skinTexture;
+    private List<String> skinsTexture = new ArrayList<>();
     private short data = 0;
     private HashMap<XEnchantment, Integer> enchantments;
     private List<ItemFlag> flags;
     private final HashMap<String, String> placeholders;
+    public boolean unbreakable = false;
     private Color color;
     private ItemStack item = null;
     private boolean glowing;
+    private String metaData;
 
     public ItemStack getItem() {
         return item;
@@ -59,10 +67,23 @@ public class SimpleItem {
         this.fireworkEffectMeta = fireworkEffectMeta;
     }
 
+    public SimpleItem setSkinsTexture(List<String> skinsTexture) {
+        this.skinsTexture.addAll(skinsTexture);
+        return this;
+    }
+
     private FireworkEffectMeta fireworkEffectMeta = null;
 
     public void setMeta(ItemMeta meta) {
         this.meta = meta;
+    }
+
+    public void setMetaData(String metaData) {
+        this.metaData = metaData;
+    }
+
+    public String getMetaData() {
+        return metaData;
     }
 
     public ItemMeta getMeta() {
@@ -70,9 +91,9 @@ public class SimpleItem {
     }
 
     public SimpleItem(ItemStack itemStack) {
-        this.lore = new ArrayList();
-        this.enchantments = new HashMap();
-        this.flags = new ArrayList();
+        this.lore = new ArrayList<>();
+        this.enchantments = new HashMap<>();
+        this.flags = new ArrayList<>();
         this.material = XMaterial.matchXMaterial(itemStack);
         this.amount = itemStack.getAmount();
         this.data = itemStack.getDurability();
@@ -84,11 +105,11 @@ public class SimpleItem {
             }
             this.lore = meta.getLore();
             this.displayName = meta.getDisplayName();
-            this.flags = new ArrayList(meta.getItemFlags());
+            this.flags = new ArrayList<>(meta.getItemFlags());
         }
 
         this.enchantments = new HashMap(itemStack.getEnchantments());
-        this.placeholders = new HashMap();
+        this.placeholders = new HashMap<>();
     }
 
     public SimpleItem(Boolean skull, String skinTexture) {
@@ -328,6 +349,9 @@ public class SimpleItem {
     }
 
     public String getSkinTexture() {
+        if (skinsTexture.size() > 0){
+            skinTexture = skinsTexture.get(new Random().nextInt(skinsTexture.size()));
+        }
         return this.skinTexture;
     }
 
@@ -381,8 +405,8 @@ public class SimpleItem {
             LMeta.setColor(this.color);
             item.setItemMeta(LMeta);
         }
-        if (material == XMaterial.PLAYER_HEAD && this.skinTexture != null) {
-            skinTexture = apply(skinTexture);
+        if (material == XMaterial.PLAYER_HEAD && getSkinTexture() != null) {
+            skinTexture = apply(getSkinTexture());
             if (player!=null){
                 skinTexture = PlaceholderAPI.setPlaceholders(player.getPlayer(), skinTexture);
             }
@@ -422,6 +446,11 @@ public class SimpleItem {
             }
         }
         item.setAmount(this.getAmount());
+        if (unbreakable){
+            ItemMeta meta1 = item.getItemMeta();
+            meta1.spigot().setUnbreakable(unbreakable);
+            item.setItemMeta(meta1);
+        }
         return ItemsManager.setPlaceHolders(item, player);
     }
 
@@ -437,12 +466,15 @@ public class SimpleItem {
         var1.setDurability(data);
         var1.setLore(this.lore);
         var1.setSkin(skinTexture);
+        var1.setSkinsTexture(skinsTexture);
         var1.setEnchantments(enchantments);
         var1.setFireworkEffectMeta(fireworkEffectMeta);
         var1.setColor(this.color);
         var1.setGlowing(glowing);
         var1.setHideFlags(var1.getFlags().contains(ItemFlag.HIDE_ATTRIBUTES));
         var1.setFlags(flags);
+        var1.setMetaData(metaData);
+        var1.setUnbreakable(unbreakable);
 
         return var1;
     }

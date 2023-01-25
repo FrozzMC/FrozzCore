@@ -16,8 +16,10 @@ import java.util.UUID;
 @Getter
 public class PlayerManager implements Listener {
     private HashMap<UUID, FUser> users = new HashMap<>();
+    private final SpigotMain plugin;
 
     public PlayerManager(SpigotMain plugin) {
+        this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
@@ -37,11 +39,11 @@ public class PlayerManager implements Listener {
         }
     }
 
-    public void removeUser(Player p){
+    public FUser removeUser(Player p){
         if (users.containsKey(p.getUniqueId())){
             users.get(p.getUniqueId()).saveData(true);
         }
-        users.remove(p.getUniqueId());
+        return users.remove(p.getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -53,6 +55,11 @@ public class PlayerManager implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onQuit(PlayerQuitEvent e){
         Player p = e.getPlayer();
+        plugin.getClassManager().getMenusManager().getPlayerMenus(p).values().forEach(menu -> {
+            if (menu.getTask() != null) {
+                menu.getTask().cancel();
+            }
+        });
         removeUser(p);
     }
 }

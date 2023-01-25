@@ -28,6 +28,8 @@ public class ClassManager {
     private NametagManager nametagManager;
     private NametagHandler nametagHandler;
 
+    private LoginListener loginListener;
+
     /* Utils */
     private Utils utils;
 
@@ -52,9 +54,6 @@ public class ClassManager {
         if (plugin.getConfig().getBoolean("modules.lobby")) {
             listener(new LobbyListener(plugin));
         }
-        if (plugin.getConfig().getBoolean("modules.lobby")) {
-            listener(new LobbyListener(plugin));
-        }
         if (plugin.getConfig().getBoolean("modules.chat")) {
             listener(new ChatListener(plugin));
         }
@@ -67,8 +66,9 @@ public class ClassManager {
         utils = new Utils(plugin);
 
         new ScoreBoard(plugin);
+        loginListener = new LoginListener(plugin);
 
-        listener(new LoginListener(plugin), new WorldListeners(plugin), new ItemEvents(plugin));
+        listener(loginListener, new WorldListeners(plugin), new ItemEvents(plugin), new DoubleJump(plugin), new JumpPadsListener(plugin));
     }
 
     public void init() {

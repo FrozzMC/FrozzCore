@@ -1,5 +1,6 @@
 package me.thejokerdev.frozzcore.type;
 
+import lombok.Getter;
 import me.thejokerdev.frozzcore.SpigotMain;
 import me.thejokerdev.frozzcore.api.utils.FileUtils;
 import me.thejokerdev.frozzcore.api.utils.Utils;
@@ -11,6 +12,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -27,6 +29,7 @@ public abstract class Menu {
     public List<Button> buttons;
 
     private boolean custom = false;
+    @Getter public BukkitTask task;
 
     public Menu(SpigotMain plugin, Player var1, String var2, String var3, int var4) {
         this.plugin = plugin;
@@ -37,6 +40,10 @@ public abstract class Menu {
         this.setBack("none");
         buttons = new ArrayList<>();
         plugin.getClassManager().getMenusManager().set(var1.getName(), var2, this);
+    }
+
+    public FUser getUser(){
+        return plugin.getClassManager().getPlayerManager().getUser(getPlayer());
     }
 
     public boolean compareItem(ItemStack a, ItemStack b){
@@ -110,11 +117,16 @@ public abstract class Menu {
     }
     public Menu setItem(List<Integer> var1, SimpleItem var2) {
         for (int i : var1){
-            this.inv.setItem(i, ItemsManager.setPlaceHolders(var2.build(getPlayer()), getPlayer()));
+            ItemStack item = ItemsManager.setPlaceHolders(var2.build(getPlayer()), getPlayer());
+            this.inv.setItem(i, item);
         }
         return this;
     }
     public Menu setItem(Button b){
+        if (b.getSlot().contains(-1)){
+            addItem(b.getItem());
+            return this;
+        }
         this.setItem(b.getSlot(), b.getItem());
         return this;
     }

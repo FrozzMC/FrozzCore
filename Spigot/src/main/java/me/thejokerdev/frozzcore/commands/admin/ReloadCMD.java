@@ -1,6 +1,7 @@
 package me.thejokerdev.frozzcore.commands.admin;
 
 import me.thejokerdev.frozzcore.SpigotMain;
+import me.thejokerdev.frozzcore.api.hooks.PAPI;
 import me.thejokerdev.frozzcore.enums.SenderType;
 import me.thejokerdev.frozzcore.type.CMD;
 import org.bukkit.command.CommandSender;
@@ -41,6 +42,8 @@ public class ReloadCMD extends CMD {
         if (args.length == 0){
             getPlugin().reloadConfig();
             getPlugin().getClassManager().getLangManager().reload();
+            new PAPI(getPlugin()).register();
+            getPlugin().getItemsCache().getItems().clear();
             getPlugin().getClassManager().getUtils().sendMessage(sender, "commands.reload.success");
             return true;
         }
@@ -49,6 +52,7 @@ public class ReloadCMD extends CMD {
             if (var1.equals("local")){
                 getPlugin().reloadConfig();
                 getPlugin().getClassManager().getLangManager().loadFiles();
+                getPlugin().getItemsCache().getItems().clear();
                 getPlugin().getClassManager().getUtils().sendMessage(sender, "commands.reload.local");
                 return true;
             }

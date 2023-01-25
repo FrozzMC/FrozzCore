@@ -1,6 +1,7 @@
 package me.thejokerdev.frozzcore.menus.custom;
 
 import me.thejokerdev.frozzcore.SpigotMain;
+import me.thejokerdev.frozzcore.enums.ItemType;
 import me.thejokerdev.frozzcore.type.Button;
 import me.thejokerdev.frozzcore.type.Menu;
 import org.bukkit.entity.Player;
@@ -12,12 +13,11 @@ import org.bukkit.scheduler.BukkitTask;
 
 public class CustomMenu extends Menu {
 
-    public BukkitTask task;
-
     public CustomMenu(SpigotMain plugin, Player player, String id){
         super(plugin, player, id, true);
 
         updateLang();
+        update();
     }
     @Override
     public void onOpen(InventoryOpenEvent var1) {
@@ -52,15 +52,27 @@ public class CustomMenu extends Menu {
     @Override
     public void onClick(InventoryClickEvent var1) {
         for (Button b : buttons){
-            if (b.getSlot().contains(var1.getSlot()) && plugin.getClassManager().getUtils().compareItems(var1.getCurrentItem(), b.getItem().build(getPlayer()))){
-                b.executeItemInMenuActions(var1);
+            if ((b.getSlot().contains(-1) || b.getSlot().contains(var1.getSlot())) && plugin.getClassManager().getUtils().compareItems(var1.getCurrentItem(), b.getItem().build(getPlayer()))){
+                if (!b.canView()){
+                    continue;
+                }
+                if (!b.executeItemInMenuActions(var1)){
+                    return;
+                }
             }
         }
     }
 
     @Override
     public void update() {
+        boolean clear = getConfig().getBoolean("settings.clear", false);
+        if (clear){
+            getInventory().clear();
+        }
         for (Button b : buttons){
+            if (!b.canView()){
+                continue;
+            }
             setItem(b);
         }
     }
@@ -72,7 +84,7 @@ public class CustomMenu extends Menu {
         if (getConfig().get("extra-items")!=null){
             for (String key : getConfig().getSection("extra-items").getKeys(false)){
                 key = "extra-items."+key;
-                buttons.add(new Button(plugin.getClassManager().getPlayerManager().getUser(getPlayer()), getConfig(), key));
+                buttons.add(new Button(plugin.getClassManager().getPlayerManager().getUser(getPlayer()), getConfig(), key, ItemType.MENU, getMenuId()));
             }
         }
     }

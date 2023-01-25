@@ -6,18 +6,52 @@ modules:
   tab: true
   items: true
   nametags: true
+  whitelist:
+    enabled: false
+    worlds:
+      world:
+        - 'lobby'
+        - 'chat'
+        - 'items'
+        - 'visibility'
+        - 'speed'
+        - 'doubleJump'
+        - 'fly'
+        - 'jump'
+        - 'joinmessages'
+        - 'scoreboard'
+        - 'jointp'
+        - 'voidtp'
+
+key: 8JRI-OK0R-IF7Y-OPE5
 
 hooks:
   luckperms: false
   skinsrestorer: true
 
+redis:
+  enabled: true
+  host: "localhost"
+  port: 6379
+  config:
+    maxConnections: 10
+    useSSL: false
+  auth:
+    password: "uqqVbwm/XOY"
+
 data:
   type: sqlite
   mysql:
     host: localhost:3306
-    database: frozzcore
+    database: core
     user: root
     password: 12345678
+  mongodb:
+    host: localhost:27017
+    database: core
+    user: root
+    password: 12345678
+    uri: 'mongodb://localhost:27017' #use this instead of host, user and password
 
 scoreboard:
   update: 10
@@ -32,6 +66,7 @@ settings:
   longTags: true
   prefix: '&b&lFrozzCore &8» '
   askOnFirstJoin: true
+  tpEveryJoin: true
   debug: false
   languages:
     default: en_US
@@ -49,6 +84,7 @@ lobby:
   disableInteract: true
   disableWeather: true
   disableDayCycle: true
+  disableSpawn: true
   disableHunger: true
   vipMessages: true
   respawn: true
@@ -79,3 +115,7 @@ items:
   onWorldChange: true
   onJoin: true
   onRespawn: true
+
+placeholders:
+  network1: '&b&lGatiscordia &f&lNetwork'
+  network2: '&b&lG&f&lN &8» &7'

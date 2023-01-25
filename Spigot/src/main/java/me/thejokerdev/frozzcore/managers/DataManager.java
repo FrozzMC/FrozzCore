@@ -1,6 +1,7 @@
 package me.thejokerdev.frozzcore.managers;
 
 import me.thejokerdev.frozzcore.SpigotMain;
+import me.thejokerdev.frozzcore.data.MongoDB;
 import me.thejokerdev.frozzcore.data.MySQL;
 import me.thejokerdev.frozzcore.data.SQLite;
 import me.thejokerdev.frozzcore.type.Data;
@@ -20,6 +21,10 @@ public class DataManager {
         switch (str.toLowerCase()){
             case "mysql":{
                 data = new MySQL(plugin);
+                break;
+            }
+            case "mongodb": {
+                data = new MongoDB(plugin);
                 break;
             }
             case "sqlite":

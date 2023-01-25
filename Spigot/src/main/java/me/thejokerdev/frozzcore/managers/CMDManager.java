@@ -1,9 +1,11 @@
 package me.thejokerdev.frozzcore.managers;
 
 import me.thejokerdev.frozzcore.SpigotMain;
+import me.thejokerdev.frozzcore.commands.admin.JumppadsCMD;
 import me.thejokerdev.frozzcore.commands.admin.ReloadCMD;
 import me.thejokerdev.frozzcore.commands.admin.SetLobbyCMD;
-import me.thejokerdev.frozzcore.commands.other.FlyCMD;
+import me.thejokerdev.frozzcore.commands.admin.WorldsCMD;
+import me.thejokerdev.frozzcore.commands.other.*;
 import me.thejokerdev.frozzcore.commands.user.LangCMD;
 import me.thejokerdev.frozzcore.commands.user.OpenCMD;
 import me.thejokerdev.frozzcore.enums.SenderType;
@@ -41,8 +43,15 @@ public class CMDManager implements CommandExecutor, TabCompleter {
         commands.add(new ReloadCMD(plugin));
         commands.add(new LangCMD(plugin));
         commands.add(new OpenCMD(plugin));
+        commands.add(new WorldsCMD(plugin));
+        commands.add(new JumppadsCMD(plugin));
 
         customCommands.put("fly", new FlyCMD(plugin));
+        customCommands.put("gamemode", new GamemodeCMD(plugin));
+        customCommands.put("gmc", new GmcCMD(plugin));
+        customCommands.put("gms", new GmsCMD(plugin));
+        customCommands.put("gma", new GmaCMD(plugin));
+        customCommands.put("gmsp", new GmspCMD(plugin));
 
         customCommands.values().forEach(CustomCMD::register);
     }
@@ -84,7 +93,13 @@ public class CMDManager implements CommandExecutor, TabCompleter {
         String help = plugin.getClassManager().getUtils().getMSG("commands.help");
         List<String> list = new ArrayList<>();
         for (CMD command : commands){
+            if (!sender.hasPermission(command.getPermission())){
+                continue;
+            }
             list.add(plugin.getClassManager().getUtils().getMSG(command.getHelp()));
+        }
+        if (list.size() == 0){
+            return;
         }
         help = help.replace("{commands}", String.join("\n", list));
         plugin.getClassManager().getUtils().sendMessage(sender, help);
@@ -94,7 +109,7 @@ public class CMDManager implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> list = new ArrayList<>();
         if (args.length == 1){
-            List<String> cmds = commands.stream().map(CMD::getName).collect(Collectors.toList());
+            List<String> cmds = commands.stream().filter(f->sender.hasPermission(f.getPermission())).map(CMD::getName).collect(Collectors.toList());
             StringUtil.copyPartialMatches(args[0], cmds, list);
         }
         String var1 = args[0];
@@ -122,13 +137,11 @@ public class CMDManager implements CommandExecutor, TabCompleter {
     public boolean registerCommand(CustomCMD cmd) {
         if (plugin.getCommand(cmd.getName()) == null) {
             PluginCommand command = getCommand(cmd.getName(), plugin);
-            if (cmd.getPermission() != null || cmd.getPermission().equals("none")) {
+            if (cmd.getPermission() != null || !cmd.getPermission().equals("none")) {
                 command.setPermission(cmd.getPermission());
             }
-            if (cmd.getPermissionError()!=null) {
-                command.setDescription(cmd.getDescription());
-                command.setAliases(cmd.getAliases());
-            }
+            command.setDescription(cmd.getDescription());
+            command.setAliases(cmd.getAliases());
             try {
                 getCommandMap().register(plugin.getDescription().getName(), command);
             } catch (Exception e) {
@@ -138,7 +151,7 @@ public class CMDManager implements CommandExecutor, TabCompleter {
             if (cmd.isTabComplete()) {
                 plugin.getCommand(cmd.getName()).setTabCompleter(cmd);
             }
-            plugin.console("{prefix}&fLoaded command: &a"+cmd.getName());
+            plugin.console("{prefix}&fLoaded command: &a" + cmd.getName());
             return true;
         }
         return false;

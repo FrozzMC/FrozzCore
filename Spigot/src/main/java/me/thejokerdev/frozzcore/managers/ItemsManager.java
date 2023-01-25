@@ -1,5 +1,6 @@
 package me.thejokerdev.frozzcore.managers;
 
+import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XPotion;
 import lombok.Getter;
@@ -7,12 +8,14 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import me.thejokerdev.frozzcore.SpigotMain;
 import me.thejokerdev.frozzcore.api.utils.FileUtils;
 import me.thejokerdev.frozzcore.api.utils.Utils;
+import me.thejokerdev.frozzcore.enums.ItemType;
 import me.thejokerdev.frozzcore.type.Button;
 import me.thejokerdev.frozzcore.type.FUser;
 import me.thejokerdev.frozzcore.type.Menu;
 import me.thejokerdev.frozzcore.type.SimpleItem;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -77,7 +80,7 @@ public class ItemsManager {
         }
 
         for (String id : file.getKeys(false)){
-            items.put(id, new Button(player, file, id));
+            items.put(id, new Button(player, file, id, ItemType.ITEMS, null));
         }
     }
 
@@ -87,15 +90,11 @@ public class ItemsManager {
         }
         Player p = getPlayer().getPlayer();
         p.getInventory().clear();
-        if (plugin.getConfig().getBoolean("settings.perWorld")){
-            if (plugin.getSpawn()!=null){
-                if (!plugin.getSpawn().getWorld().equals(p.getWorld())){
-                    return;
-                }
-            }
-        }
         for (Button button : items.values()){
             for (int i : button.getSlot()){
+                if (!button.canView()){
+                    continue;
+                }
                 p.getInventory().setItem(i, button.getItem().build(player.getPlayer()));
             }
         }
@@ -119,6 +118,8 @@ public class ItemsManager {
         boolean hasMaterial = section.get("material")!= null;
         boolean hasData = section.get("data")!= null;
         boolean hasPlaceholder = section.get("placeholders")!= null;
+        boolean hasMetaData = section.get("metadata")!=null;
+        boolean isUnbreakable = section.get("unbreakable")!=null;
 
         SimpleItem item = new SimpleItem(XMaterial.BARRIER);
 
@@ -139,17 +140,12 @@ public class ItemsManager {
             for (String s : pl){
                 if (s.contains(",")){
                     String[] s2 = s.split(",");
-                    String key = s2[0];
-                    String value;
-                    if (player == null){
-                        value = PlaceholderAPI.setPlaceholders(null, s2[1]);
-                    } else {
-                        value = PlaceholderAPI.setPlaceholders(player.getPlayer(), s2[1]);
-                    }
-
-                    item.addPlaceholder(key, value);
+                    item.addPlaceholder(s2[0], s2[1]);
                 }
             }
+        }
+        if (isUnbreakable){
+            item.setUnbreakable(section.getBoolean("unbreakable"));
         }
         if (hasMeta){
             if (hasName){
@@ -164,21 +160,31 @@ public class ItemsManager {
                 item.setLore(Utils.ct(lore));
             }
         }
+        if (hasMetaData){
+            item.setMetaData(section.getString("metadata"));
+            if (item.getMetaData().equals("tpbow")){
+                item.addEnchantment(XEnchantment.ARROW_INFINITE, 1);
+            }
+        }
         if (hasAmount){
             item.setAmount(section.getInt("amount"));
         }
         if (hasSkullData){
-            String skull = section.getString("skull");
-            if (player!=null){
-                skull = PlaceholderAPI.setPlaceholders(player.getPlayer(), skull);
+            if (section.get("skull").getClass().getName().equalsIgnoreCase("java.util.ArrayList")){
+                List<String> skull = section.getStringList("skull");
+                item.setSkinsTexture(skull);
+                item.setSkin(skull.get(0));
+            } else {
+                String skull = section.getString("skull");
+                item.setSkin(skull);
             }
-            item.setSkin(skull);
+
         }
         if (isGlow){
             item.setGlowing(section.getBoolean("glow"));
         }
         if (hideFlags){
-            item.setShowAttributes(section.getBoolean("hideFlags"));
+            item.setShowAttributes(!section.getBoolean("hideFlags"));
         }
         if (hasFireWork){
             String color;
@@ -236,6 +242,9 @@ public class ItemsManager {
     }
 
     public static ItemStack setPlaceHolders(ItemStack item, Player p) {
+        if (item.getType() == Material.AIR){
+            return item;
+        }
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(PlaceholderAPI.setPlaceholders(p, meta.getDisplayName()));
         List<String> lore;

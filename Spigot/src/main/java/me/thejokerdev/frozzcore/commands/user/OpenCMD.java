@@ -4,6 +4,7 @@ import me.thejokerdev.frozzcore.SpigotMain;
 import me.thejokerdev.frozzcore.enums.SenderType;
 import me.thejokerdev.frozzcore.type.CMD;
 import me.thejokerdev.frozzcore.type.Menu;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -21,7 +22,7 @@ public class OpenCMD extends CMD {
 
     @Override
     public SenderType getSenderType() {
-        return SenderType.PLAYER;
+        return SenderType.BOTH;
     }
 
     @Override
@@ -31,7 +32,7 @@ public class OpenCMD extends CMD {
 
     @Override
     public String getHelp() {
-        return "";
+        return "commands.open.help";
     }
 
     @Override
@@ -39,9 +40,17 @@ public class OpenCMD extends CMD {
         if (!sender.hasPermission(getPermission())){
             return true;
         }
-        Player p = (Player) sender;
-        if (args.length == 1){
-
+        Player p = null;
+        if (args.length > 0){
+            if (args.length == 1 && sender instanceof Player){
+                p = (Player) sender;
+            }
+            if (args.length == 2){
+                p = Bukkit.getPlayer(args[1]);
+            }
+            if (p == null){
+                return true;
+            }
             String arg = args[0];
             Menu menu = getPlugin().getClassManager().getMenusManager().getPlayerMenu(p, arg);
             if (menu == null){

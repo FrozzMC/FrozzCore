@@ -1,0 +1,4 @@
+settings:
+  mode: whitelist #whitelist is, only the worlds here will be protected. blacklist is, all the worlds here will not be protected.
+  global:
+    - 'chat'

@@ -71,7 +71,6 @@ public class SQLite extends Data {
             this.close(var4);
             this.close(var5);
         }
-
     }
 
     @Override

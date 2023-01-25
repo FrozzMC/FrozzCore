@@ -7,8 +7,13 @@ import me.thejokerdev.frozzcore.api.visual.Animation;
 import me.thejokerdev.frozzcore.api.visual.Color;
 import me.thejokerdev.frozzcore.type.FUser;
 import me.thejokerdev.frozzcore.type.Lang;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class PAPI extends PlaceholderExpansion {
     private SpigotMain plugin;
@@ -39,6 +44,53 @@ public class PAPI extends PlaceholderExpansion {
 
     @Override
     public String onPlaceholderRequest(Player player, @NotNull String params) {
+        if (plugin.getConfig().get("placeholders")!=null){
+            for (String key : plugin.getConfig().getConfigurationSection("placeholders").getKeys(false)){
+                if (key.equalsIgnoreCase(params)){
+                    return plugin.getClassManager().getUtils().formatMSG(player, plugin.getConfig().getString("placeholders."+key));
+                }
+            }
+        }
+        if (params.equals("chatcolor")){
+            LinkedList<String> list = new LinkedList<>(plugin.getConfig().getConfigurationSection("chat.colors").getKeys(false));
+            String out = plugin.getConfig().getString("chat.colors.default");
+            for (String perm : list){
+                if (perm.equals("default") && !player.hasPermission("core.chatcolor.status")){
+                    continue;
+                }
+                if (player.hasPermission("core.chatcolor."+perm)){
+                    out = plugin.getConfig().getString("chat.colors."+perm);
+                }
+            }
+            return out;
+        }
+        if (params.equals("fly")){
+            FUser user = plugin.getClassManager().getPlayerManager().getUser(player);
+            if (user != null){
+                return user.getAllowFlight().name();
+            }
+        }
+        if (params.equals("speed")){
+            FUser user = plugin.getClassManager().getPlayerManager().getUser(player);
+            if (user != null){
+                return user.getSpeed().name();
+            }
+        }
+        if (params.equals("server_id")){
+            return plugin.getId();
+        }
+        if (params.equals("jump")){
+            FUser user = plugin.getClassManager().getPlayerManager().getUser(player);
+            if (user != null){
+                return user.getJump().name();
+            }
+        }
+        if (params.equals("doublejump")){
+            FUser user = plugin.getClassManager().getPlayerManager().getUser(player);
+            if (user != null){
+                return user.getDoubleJump().name();
+            }
+        }
         if (params.equals("hype")){
             if (player != null){
                 FUser user = plugin.getClassManager().getPlayerManager().getUser(player);

@@ -1,0 +1,4 @@
+server-name: "Lobby-1"
+server-ip: "{server-ip}"
+server-port: "{server-port}"
+id: 1

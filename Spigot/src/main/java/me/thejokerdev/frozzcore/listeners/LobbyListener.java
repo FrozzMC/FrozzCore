@@ -1,10 +1,12 @@
 package me.thejokerdev.frozzcore.listeners;
 
 import me.thejokerdev.frozzcore.SpigotMain;
+import me.thejokerdev.frozzcore.enums.Modules;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -33,7 +35,7 @@ public class LobbyListener implements Listener {
         }
 
         World w = plugin.getSpawn().getWorld();
-        if (w.getGameRuleValue("doDaylightCycle").equalsIgnoreCase("true")){
+        if (w.getGameRuleValue("doDaylightCycle").equalsIgnoreCase("true") && plugin.getUtils().isWorldProtected(w, Modules.LOBBY)){
             w.setTime(6000);
             w.setGameRuleValue("doDaylightCycle", "false");
             w.setGameRuleValue("randomTickSpeed", "0");
@@ -42,61 +44,57 @@ public class LobbyListener implements Listener {
 
     @EventHandler
     public void onPvP(EntityDamageByEntityEvent e){
-        if (plugin.getSpawn() == null){
-            return;
+        World w = e.getEntity().getWorld();
+
+        if (e.getDamager() instanceof Player){
+            Player p = (Player)e.getDamager();
+            if (p.getGameMode() == GameMode.CREATIVE && e.getEntityType() == EntityType.ARMOR_STAND){
+                return;
+            }
         }
-        if (!plugin.getConfig().getBoolean("lobby.disablePvP")){
-            return;
-        }
-        Entity entity = e.getEntity();
-        if (plugin.getSpawn().getWorld() == entity.getWorld()){
+
+        if (plugin.getUtils().isWorldProtected(w, Modules.LOBBY) && plugin.getConfig().getBoolean("lobby.disablePvP")){
             e.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onMobSpawn(EntitySpawnEvent e){
-        if (plugin.getSpawn() == null){
+        World w = e.getEntity().getWorld();
+        if (e.getEntityType() == EntityType.ARMOR_STAND){
             return;
         }
-        if (!plugin.getConfig().getBoolean("lobby.disablePvP")){
-            return;
-        }
-        Entity entity = e.getEntity();
-        if (plugin.getSpawn().getWorld() == entity.getWorld()){
-            e.setCancelled(true);
-        }
-    }
-
-    @EventHandler
-    public void onDamage(EntityDamageEvent e){
-        if (plugin.getSpawn() == null){
-            return;
-        }
-        if (!plugin.getConfig().getBoolean("lobby.disableDamage")){
-            return;
-        }
-        Entity entity = e.getEntity();
-        if (plugin.getSpawn().getWorld() == entity.getWorld()){
-            if (e.getCause() == EntityDamageEvent.DamageCause.VOID){
-                if (plugin.getConfig().getBoolean("lobby.teleportOnVoid")){
-                    e.getEntity().teleport(plugin.getSpawn());
-                }
+        if (plugin.getUtils().isWorldProtected(w, Modules.LOBBY) && plugin.getConfig().getBoolean("lobby.disableSpawn")) {
+            if (e.getEntityType() == EntityType.ENDER_PEARL) {
+                return;
             }
             e.setCancelled(true);
         }
     }
 
     @EventHandler
-    public void onDamageByBlock(EntityDamageByBlockEvent e){
-        if (plugin.getSpawn() == null){
-            return;
-        }
+    public void onDamage(EntityDamageEvent e){
+        World w = e.getEntity().getWorld();
         if (!plugin.getConfig().getBoolean("lobby.disableDamage")){
             return;
         }
-        Entity entity = e.getEntity();
-        if (plugin.getSpawn().getWorld() == entity.getWorld()){
+        if (e.getCause() == EntityDamageEvent.DamageCause.VOID && plugin.getUtils().isWorldProtected(w, Modules.VOIDTP)) {
+            if (w == plugin.getSpawn().getWorld()){
+                e.getEntity().teleport(plugin.getSpawn());
+            } else {
+                e.getEntity().teleport(w.getSpawnLocation());
+            }
+            e.setCancelled(true);
+        }
+        if (plugin.getUtils().isWorldProtected(w, Modules.LOBBY)){
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onDamageByBlock(EntityDamageByBlockEvent e){
+        World w = e.getEntity().getWorld();
+        if (plugin.getUtils().isWorldProtected(w, Modules.LOBBY) && plugin.getConfig().getBoolean("lobby.disableDamage")){
             e.setCancelled(true);
         }
     }
@@ -104,13 +102,8 @@ public class LobbyListener implements Listener {
     @EventHandler
     public void onInteract(PlayerInteractEvent e){
         Player p = e.getPlayer();
-        if (plugin.getSpawn() == null){
-            return;
-        }
-        if (!plugin.getConfig().getBoolean("lobby.disableInteract")){
-            return;
-        }
-        if (plugin.getSpawn().getWorld() == p.getWorld()){
+        World w = p.getWorld();
+        if (plugin.getUtils().isWorldProtected(w, Modules.LOBBY) && plugin.getConfig().getBoolean("lobby.disableInteract")){
             if (p.hasPermission("core.admin.build") && p.getGameMode() == GameMode.CREATIVE){
                 return;
             }
@@ -120,13 +113,8 @@ public class LobbyListener implements Listener {
 
     @EventHandler
     public void onWeatherChange(WeatherChangeEvent e){
-        if (plugin.getSpawn() == null){
-            return;
-        }
-        if (!plugin.getConfig().getBoolean("lobby.disableWeather")){
-            return;
-        }
-        if (e.getWorld() == plugin.getSpawn().getWorld()){
+        World w = e.getWorld();
+        if (plugin.getUtils().isWorldProtected(w, Modules.LOBBY) && plugin.getConfig().getBoolean("lobby.disableWeather")){
             checkDay();
             e.setCancelled(true);
         }
@@ -134,13 +122,8 @@ public class LobbyListener implements Listener {
 
     @EventHandler
     public void onFeedLevelChange(FoodLevelChangeEvent e){
-        if (plugin.getSpawn() == null){
-            return;
-        }
-        if (!plugin.getConfig().getBoolean("lobby.disableHunger")){
-            return;
-        }
-        if (e.getEntity().getWorld() == plugin.getSpawn().getWorld()){
+        World w = e.getEntity().getWorld();
+        if (plugin.getUtils().isWorldProtected(w, Modules.LOBBY) && plugin.getConfig().getBoolean("lobby.disableHunger")){
             e.setFoodLevel(20);
             e.setCancelled(true);
         }
@@ -149,13 +132,8 @@ public class LobbyListener implements Listener {
     @EventHandler
     public void onDeath(PlayerDeathEvent e){
         Player p = e.getEntity();
-        if (plugin.getSpawn() == null){
-            return;
-        }
-        if (!plugin.getConfig().getBoolean("lobby.respawn")){
-           return;
-        }
-        if (plugin.getSpawn().getWorld().equals(p.getWorld())){
+        World w = p.getWorld();
+        if (plugin.getUtils().isWorldProtected(w, Modules.LOBBY) && plugin.getConfig().getBoolean("lobby.respawn")){
             p.spigot().respawn();
         }
     }
@@ -163,32 +141,13 @@ public class LobbyListener implements Listener {
     @EventHandler
     public void onRespawn(PlayerRespawnEvent e){
         Player p = e.getPlayer();
-        if (plugin.getSpawn() == null){
-            return;
-        }
-        if (!plugin.getConfig().getBoolean("lobby.respawn")){
-            return;
-        }
-        if (plugin.getSpawn().getWorld().equals(p.getWorld())){
-            spawnRandomLoc(p, plugin.getSpawn());
-            if (plugin.getConfig().getBoolean("items.onRespawn")){
+        World w = p.getWorld();
+        if (plugin.getUtils().isWorldProtected(w, Modules.LOBBY) && plugin.getConfig().getBoolean("lobby.respawn")){
+            plugin.getClassManager().getLoginListener().spawnRandomLoc(p, plugin.getSpawn() !=null ? plugin.getSpawn() : w.getSpawnLocation());
+            if (plugin.getUtils().isWorldProtected(w, Modules.ITEMS) && plugin.getConfig().getBoolean("items.onRespawn")){
                 plugin.getClassManager().getPlayerManager().getUser(p).getItemsManager().setItems();
             }
         }
     }
 
-    public void spawnRandomLoc(Player p, Location loc){
-        List<Double> randomInt = new ArrayList<>();
-        randomInt.add(0.5);
-        randomInt.add(-0.5);
-        randomInt.add(0.25);
-        randomInt.add(-0.25);
-        randomInt.add(0.125);
-        randomInt.add(-0.125);
-        Location location = loc.clone().add(randomInt.get(new Random().nextInt(randomInt.size())), 0, randomInt.get(new Random().nextInt(randomInt.size())));
-        p.teleport(location);
-        if (p.hasPermission("core.fly")){
-            p.setAllowFlight(true);
-        }
-    }
 }
